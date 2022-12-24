@@ -88,15 +88,9 @@ bool DInputSource::Initialize(SettingsInterface& si, std::unique_lock<std::mutex
 
   // need to release the lock while we're enumerating, because we call winId().
   settings_lock.unlock();
-	const std::optional<WindowInfo> toplevel_wi(Host::GetTopLevelWindowInfo());
-	if (!toplevel_wi.has_value() || toplevel_wi->type != WindowInfo::Type::Win32)
-	{
-		Log_ErrorPrintf("Missing top level window, cannot add DInput devices.");
-		return false;
-	}
+  m_toplevel_window = static_cast<HWND>(Host::GetTopLevelWindowHandle());
   settings_lock.lock();
 
-  m_toplevel_window = static_cast<HWND>(toplevel_wi->window_handle);
   ReloadDevices();
   return true;
 }

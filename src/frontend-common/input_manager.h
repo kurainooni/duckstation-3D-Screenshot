@@ -12,7 +12,6 @@
 
 #include "common/settings_interface.h"
 #include "common/types.h"
-#include "common/window_info.h"
 
 /// Class, or source of an input event.
 enum class InputSourceType : u32
@@ -318,9 +317,6 @@ std::vector<std::string> GetInputProfileNames();
 } // namespace InputManager
 
 namespace Host {
-/// Return the current window handle. Needed for DInput.
-std::optional<WindowInfo> GetTopLevelWindowInfo();
-
 /// Called when a new input device is connected.
 void OnInputDeviceConnected(const std::string_view& identifier, const std::string_view& device_name);
 

@@ -2540,13 +2540,6 @@ void MainWindow::checkForSettingChanges()
   updateWindowState();
 }
 
-void MainWindow::getWindowInfo(WindowInfo* wi)
-{
-  std::optional<WindowInfo> opt_wi(QtUtils::GetWindowInfoForWidget(this));
-  if (opt_wi.has_value())
-    *wi = opt_wi.value();
-}
-
 void MainWindow::onCheckForUpdatesActionTriggered()
 {
   // Wipe out the last version, that way it displays the update if we've previously skipped it.

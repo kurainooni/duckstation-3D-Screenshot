@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: (GPL-3.0 OR CC-BY-NC-ND-4.0)
 
 #pragma once
-#include "common/window_info.h"
 #include "common/types.h"
 #include <QtCore/QByteArray>
 #include <QtCore/QMetaType>
@@ -94,11 +93,5 @@ QIcon GetIconForRegion(DiscRegion region);
 /// Returns icon for entry type.
 QIcon GetIconForEntryType(GameList::EntryType type);
 QIcon GetIconForCompatibility(GameDatabase::CompatibilityRating rating);
-
-/// Returns the pixel ratio/scaling factor for a widget.
-qreal GetDevicePixelRatioForWidget(const QWidget* widget);
-
-/// Returns the common window info structure for a Qt widget.
-std::optional<WindowInfo> GetWindowInfoForWidget(QWidget* widget);
 
 } // namespace QtUtils
