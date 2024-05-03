@@ -21,6 +21,9 @@ FolderSettingsWidget::FolderSettingsWidget(SettingsWindow* dialog, QWidget* pare
   SettingWidgetBinder::BindWidgetToFolderSetting(sif, m_ui.screenshots, m_ui.screenshotsBrowse, m_ui.screenshotsOpen,
                                                  m_ui.screenshotsReset, "Folders", "Screenshots",
                                                  Path::Combine(EmuFolders::DataRoot, "screenshots"));
+  SettingWidgetBinder::BindWidgetToFolderSetting(sif, m_ui.screenshots3D, m_ui.screenshots3DBrowse, m_ui.screenshots3DOpen,
+                                                 m_ui.screenshots3DReset, "Folders", "Screenshots3D",
+                                                 Path::Combine(EmuFolders::DataRoot, "screenshots_3d"));
   SettingWidgetBinder::BindWidgetToFolderSetting(sif, m_ui.saveStates, m_ui.saveStatesBrowse, m_ui.saveStatesOpen,
                                                  m_ui.saveStatesReset, "Folders", "SaveStates",
                                                  Path::Combine(EmuFolders::DataRoot, "savestates"));

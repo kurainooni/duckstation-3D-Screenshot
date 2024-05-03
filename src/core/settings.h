@@ -211,6 +211,8 @@ struct Settings
     mutable bool show_timers_state = false;
     mutable bool show_mdec_state = false;
     mutable bool show_dma_state = false;
+    mutable bool show_freecam = false;
+    mutable bool show_3d_screenshotter = false;
   } debugging;
 
   // texture replacements
@@ -514,6 +516,7 @@ extern std::string MemoryCards;
 extern std::string Resources;
 extern std::string SaveStates;
 extern std::string Screenshots;
+extern std::string Screenshots3D;
 extern std::string Shaders;
 extern std::string Textures;
 

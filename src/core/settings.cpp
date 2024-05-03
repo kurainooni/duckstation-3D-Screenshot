@@ -376,6 +376,8 @@ void Settings::Load(SettingsInterface& si)
   debugging.show_timers_state = si.GetBoolValue("Debug", "ShowTimersState");
   debugging.show_mdec_state = si.GetBoolValue("Debug", "ShowMDECState");
   debugging.show_dma_state = si.GetBoolValue("Debug", "ShowDMAState");
+  debugging.show_freecam = si.GetBoolValue("Debug", "ShowFreecam");
+  debugging.show_3d_screenshotter = si.GetBoolValue("Debug", "Show3DScreenshotter");
 
   texture_replacements.enable_vram_write_replacements =
     si.GetBoolValue("TextureReplacements", "EnableVRAMWriteReplacements", false);
@@ -1454,6 +1456,7 @@ std::string EmuFolders::MemoryCards;
 std::string EmuFolders::Resources;
 std::string EmuFolders::SaveStates;
 std::string EmuFolders::Screenshots;
+std::string EmuFolders::Screenshots3D;
 std::string EmuFolders::Shaders;
 std::string EmuFolders::Textures;
 
@@ -1469,6 +1472,7 @@ void EmuFolders::SetDefaults()
   MemoryCards = Path::Combine(DataRoot, "memcards");
   SaveStates = Path::Combine(DataRoot, "savestates");
   Screenshots = Path::Combine(DataRoot, "screenshots");
+  Screenshots3D = Path::Combine(DataRoot, "screenshots_3d");
   Shaders = Path::Combine(DataRoot, "shaders");
   Textures = Path::Combine(DataRoot, "textures");
 }
@@ -1496,6 +1500,7 @@ void EmuFolders::LoadConfig(SettingsInterface& si)
   MemoryCards = LoadPathFromSettings(si, DataRoot, "MemoryCards", "Directory", "memcards");
   SaveStates = LoadPathFromSettings(si, DataRoot, "Folders", "SaveStates", "savestates");
   Screenshots = LoadPathFromSettings(si, DataRoot, "Folders", "Screenshots", "screenshots");
+  Screenshots3D = LoadPathFromSettings(si, DataRoot, "Folders", "Screenshots3D", "screenshots_3d");
   Shaders = LoadPathFromSettings(si, DataRoot, "Folders", "Shaders", "shaders");
   Textures = LoadPathFromSettings(si, DataRoot, "Folders", "Textures", "textures");
 
@@ -1509,6 +1514,7 @@ void EmuFolders::LoadConfig(SettingsInterface& si)
   Log_DevPrintf("MemoryCards Directory: %s", MemoryCards.c_str());
   Log_DevPrintf("SaveStates Directory: %s", SaveStates.c_str());
   Log_DevPrintf("Screenshots Directory: %s", Screenshots.c_str());
+  Log_DevPrintf("Screenshots3D Directory: %s", Screenshots3D.c_str());
   Log_DevPrintf("Shaders Directory: %s", Shaders.c_str());
   Log_DevPrintf("Textures Directory: %s", Textures.c_str());
 }
@@ -1526,6 +1532,7 @@ void EmuFolders::Save(SettingsInterface& si)
   si.SetStringValue("MemoryCards", "Directory", Path::MakeRelative(MemoryCards, DataRoot).c_str());
   si.SetStringValue("Folders", "SaveStates", Path::MakeRelative(SaveStates, DataRoot).c_str());
   si.SetStringValue("Folders", "Screenshots", Path::MakeRelative(Screenshots, DataRoot).c_str());
+  si.SetStringValue("Folders", "Screenshots3D", Path::MakeRelative(Screenshots3D, DataRoot).c_str());
   si.SetStringValue("Folders", "Shaders", Path::MakeRelative(Shaders, DataRoot).c_str());
   si.SetStringValue("Folders", "Textures", Path::MakeRelative(Textures, DataRoot).c_str());
 }
@@ -1566,6 +1573,7 @@ bool EmuFolders::EnsureFoldersExist()
   result = FileSystem::EnsureDirectoryExists(MemoryCards.c_str(), false) && result;
   result = FileSystem::EnsureDirectoryExists(SaveStates.c_str(), false) && result;
   result = FileSystem::EnsureDirectoryExists(Screenshots.c_str(), false) && result;
+  result = FileSystem::EnsureDirectoryExists(Screenshots3D.c_str(), false) && result;
   result = FileSystem::EnsureDirectoryExists(Shaders.c_str(), false) && result;
   result = FileSystem::EnsureDirectoryExists(Path::Combine(Shaders, "reshade").c_str(), false) && result;
   result = FileSystem::EnsureDirectoryExists(

@@ -206,6 +206,13 @@
     <addaction name="actionDebugShowMDECState"/>
     <addaction name="actionDebugShowDMAState"/>
    </widget>
+   <widget class="QMenu" name="menu3DScreenshot">
+    <property name="title">
+     <string>&amp;3D Screenshot</string>
+    </property>
+    <addaction name="actionDebugShowFreecam"/>
+    <addaction name="actionDebugShow3DScreenshotter"/>
+   </widget>
    <widget class="QMenu" name="menu_View">
     <property name="title">
      <string>&amp;View</string>
@@ -246,6 +253,7 @@
    <addaction name="menu_View"/>
    <addaction name="menu_Tools"/>
    <addaction name="menuDebug"/>
+   <addaction name="menu3DScreenshot"/>
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QToolBar" name="toolBar">
@@ -785,6 +793,22 @@
    </property>
    <property name="text">
     <string>Show DMA State</string>
+   </property>
+  </action>
+  <action name="actionDebugShowFreecam">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show Freecam</string>
+   </property>
+  </action>
+  <action name="actionDebugShow3DScreenshotter">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show 3D Screenshotter</string>
    </property>
   </action>
   <action name="actionScreenshot">

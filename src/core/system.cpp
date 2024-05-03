@@ -31,6 +31,7 @@
 #include "save_state_version.h"
 #include "sio.h"
 #include "spu.h"
+#include "screenshot_3d.h"
 #include "texture_replacements.h"
 #include "timers.h"
 
@@ -1671,6 +1672,7 @@ void System::DestroySystem()
   Bus::Shutdown();
   CPU::Shutdown();
   TimingEvents::Shutdown();
+  Screenshot3D::Shutdown();
   ClearRunningGame();
 
   // Restore present-all-frames behavior.

@@ -6,6 +6,7 @@
 #include "common/string_util.h"
 #include "gpu.h"
 #include "interrupt_controller.h"
+#include "screenshot_3d.h"
 #include "system.h"
 #include "texture_replacements.h"
 Log_SetChannel(GPU);
@@ -356,6 +357,34 @@ bool GPU::HandleRenderPolygonCommand()
   m_stats.num_polygons++;
   m_render_command.bits = rc.bits;
   m_fifo.RemoveOne();
+
+  // Pass poly to Screenshot3D
+  if (Screenshot3D::WantsPolygon())
+  {
+    int k = 0;
+    GPUBackendDrawPolygonCommand::Vertex v[4];
+
+    const u32 first_color = rc.color_for_first_vertex;
+    const bool shaded = rc.shading_enable;
+    const bool textured = rc.texture_enable;
+
+    for (u32 i = 0; i < (rc.quad_polygon ? 4 : 3); i++)
+    {
+      v[i].color = (shaded && i > 0) ? (FifoPeek(k++) & UINT32_C(0x00FFFFFF)) : first_color;
+      const u64 maddr_and_pos = FifoPeek(k++);
+      const GPUVertexPosition vp{Truncate32(maddr_and_pos)};
+      v[i].x = vp.x;
+      v[i].y = vp.y;
+      v[i].texcoord = textured ? Truncate16(FifoPeek(k++)) : 0;
+    }
+
+    Screenshot3D::DrawPolygon(
+      rc, v,
+      m_draw_mode.mode_reg,
+      m_draw_mode.palette_reg,
+      m_draw_mode.texture_window
+    );
+  }
 
   DispatchRenderCommand();
   EndCommand();

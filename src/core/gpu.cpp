@@ -3,10 +3,12 @@
 
 #include "gpu.h"
 #include "dma.h"
+#include "freecam.h"
 #include "gpu_shadergen.h"
 #include "host.h"
 #include "imgui.h"
 #include "interrupt_controller.h"
+#include "screenshot_3d.h"
 #include "settings.h"
 #include "system.h"
 #include "timers.h"
@@ -1165,6 +1167,17 @@ void GPU::WriteGP1(u32 value)
       Log_DebugPrintf("Display address start <- 0x%08X", new_value);
 
       System::IncrementInternalFrameNumber();
+
+      Freecam::NextFrame();
+
+      if (Screenshot3D::WantsUpdateFromVRAM())
+      {
+        ReadVRAM(0, 0, VRAM_WIDTH, VRAM_HEIGHT);
+        Screenshot3D::UpdateFromVRAM(m_vram_ptr);
+      }
+      Screenshot3D::NextFrame();
+
+
       if (m_crtc_state.regs.display_address_start != new_value)
       {
         SynchronizeCRTC();

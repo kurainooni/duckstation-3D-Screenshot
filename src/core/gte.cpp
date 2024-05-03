@@ -5,7 +5,9 @@
 
 #include "cpu_core.h"
 #include "cpu_core_private.h"
+#include "freecam.h"
 #include "pgxp.h"
+#include "screenshot_3d.h"
 #include "settings.h"
 #include "timing_event.h"
 
@@ -670,9 +672,12 @@ void GTE::RTPS(const s16 V[3], u8 shift, bool lm, bool last)
   // IR1 = MAC1 = (TRX*1000h + RT11*VX0 + RT12*VY0 + RT13*VZ0) SAR (sf*12)
   // IR2 = MAC2 = (TRY*1000h + RT21*VX0 + RT22*VY0 + RT23*VZ0) SAR (sf*12)
   // IR3 = MAC3 = (TRZ*1000h + RT31*VX0 + RT32*VY0 + RT33*VZ0) SAR (sf*12)
-  const s64 x = dot3(0);
-  const s64 y = dot3(1);
-  const s64 z = dot3(2);
+  s64 x = dot3(0);
+  s64 y = dot3(1);
+  s64 z = dot3(2);
+
+  Freecam::ApplyToVertex(x, y, z);
+
   TruncateAndSetMAC<1>(x, shift);
   TruncateAndSetMAC<2>(y, shift);
   TruncateAndSetMAC<3>(z, shift);
@@ -726,7 +731,27 @@ void GTE::RTPS(const s16 V[3], u8 shift, bool lm, bool last)
   const s64 Sy = s64(result) * s64(REGS.IR2) + s64(REGS.OFY);
   CheckMACOverflow<0>(Sx);
   CheckMACOverflow<0>(Sy);
-  PushSXY(s32(Sx >> 16), s32(Sy >> 16));
+
+  s32 Sx32 = s32(Sx >> 16);
+  s32 Sy32 = s32(Sy >> 16);
+
+  // Provide screen coordinate to Screenshot3D for tracking &
+  // modification.
+  //
+  // NOTE: When it modifies Sx32,Sy32 it changes the result that goes
+  // into the screen coordinate FIFO but not the MAC (doesn't seem to
+  // matter?)
+  //
+  // NOTE: Saturates to -1024..1023, so the saturation flag never gets
+  // set in PushSXY (doesn't matter?)
+  Screenshot3D::PushVertex(
+    Sx32, Sy32,
+    float(x) / (static_cast<float>(1 << shift)),
+    float(y) / (static_cast<float>(1 << shift)),
+    float(z) / 4096.0f
+  );
+
+  PushSXY(Sx32, Sy32);
 
   if (g_settings.gpu_pgxp_enable)
   {
@@ -832,17 +857,28 @@ void GTE::Execute_NCLIP(Instruction inst)
   // MAC0 =   SX0*SY1 + SX1*SY2 + SX2*SY0 - SX0*SY2 - SX1*SY0 - SX2*SY1
   REGS.FLAG.Clear();
 
-  TruncateAndSetMAC<0>(s64(REGS.SXY0[0]) * s64(REGS.SXY1[1]) + s64(REGS.SXY1[0]) * s64(REGS.SXY2[1]) +
-                         s64(REGS.SXY2[0]) * s64(REGS.SXY0[1]) - s64(REGS.SXY0[0]) * s64(REGS.SXY2[1]) -
-                         s64(REGS.SXY1[0]) * s64(REGS.SXY0[1]) - s64(REGS.SXY2[0]) * s64(REGS.SXY1[1]),
-                       0);
+  s64 value = s64(REGS.SXY0[0]) * s64(REGS.SXY1[1]) + s64(REGS.SXY1[0]) * s64(REGS.SXY2[1]) +
+                s64(REGS.SXY2[0]) * s64(REGS.SXY0[1]) - s64(REGS.SXY0[0]) * s64(REGS.SXY2[1]) -
+                s64(REGS.SXY1[0]) * s64(REGS.SXY0[1]) - s64(REGS.SXY2[0]) * s64(REGS.SXY1[1]);
+
+  if (Screenshot3D::ShouldDisableCulling())
+  {
+    if (value < 0) value = -value;  // reverse backfacing
+    if (value == 0) value = 1;      // fix zero-size
+  }
+
+  TruncateAndSetMAC<0>(value, 0);
 
   REGS.FLAG.UpdateError();
 }
 
 void GTE::Execute_NCLIP_PGXP(Instruction inst)
 {
-  if (PGXP::GTE_NCLIP_valid(REGS.dr32[12], REGS.dr32[13], REGS.dr32[14]))
+  if (Screenshot3D::ShouldDisableCulling())
+  {
+    Execute_NCLIP(inst);
+  }
+  else if (PGXP::GTE_NCLIP_valid(REGS.dr32[12], REGS.dr32[13], REGS.dr32[14]))
   {
     REGS.FLAG.Clear();
     REGS.MAC0 = static_cast<s32>(PGXP::GTE_NCLIP());

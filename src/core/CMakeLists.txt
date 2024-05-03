@@ -32,6 +32,8 @@ add_library(core
   digital_controller.h
   dma.cpp
   dma.h
+  freecam.cpp
+  freecam.h
   fullscreen_ui.cpp
   fullscreen_ui.h
   game_database.cpp
@@ -94,6 +96,8 @@ add_library(core
   resources.cpp
   resources.h
   save_state_version.h
+  screenshot_3d.cpp
+  screenshot_3d.h
   settings.cpp
   settings.h
   shader_cache_version.h

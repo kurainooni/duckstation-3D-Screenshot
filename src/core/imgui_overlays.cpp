@@ -5,11 +5,13 @@
 #include "cdrom.h"
 #include "controller.h"
 #include "dma.h"
+#include "freecam.h"
 #include "fullscreen_ui.h"
 #include "gpu.h"
 #include "host.h"
 #include "mdec.h"
 #include "resources.h"
+#include "screenshot_3d.h"
 #include "settings.h"
 #include "spu.h"
 #include "system.h"
@@ -222,6 +224,11 @@ void ImGuiManager::RenderDebugWindows()
       MDEC::DrawDebugStateWindow();
     if (g_settings.debugging.show_dma_state)
       DMA::DrawDebugStateWindow();
+
+    if (g_settings.debugging.show_freecam)
+      Freecam::DrawGuiWindow();
+    if (g_settings.debugging.show_3d_screenshotter)
+      Screenshot3D::DrawGuiWindow();
   }
 }
 

@@ -2123,6 +2123,10 @@ void MainWindow::connectSignals()
   SettingWidgetBinder::BindWidgetToBoolSetting(nullptr, m_ui.actionDebugShowMDECState, "Debug", "ShowMDECState", false);
   SettingWidgetBinder::BindWidgetToBoolSetting(nullptr, m_ui.actionDebugShowDMAState, "Debug", "ShowDMAState", false);
 
+  SettingWidgetBinder::BindWidgetToBoolSetting(nullptr, m_ui.actionDebugShowFreecam, "Debug", "ShowFreecam", false);
+  SettingWidgetBinder::BindWidgetToBoolSetting(nullptr, m_ui.actionDebugShow3DScreenshotter, "Debug", "Show3DScreenshotter",
+                                               false);
+
   for (u32 i = 0; GeneralSettingsWidget::THEME_NAMES[i]; i++)
   {
     const QString key = QString::fromUtf8(GeneralSettingsWidget::THEME_VALUES[i]);
