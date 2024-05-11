@@ -2578,10 +2578,8 @@ void MainWindow::resizeEvent(QResizeEvent* event)
 
 void MainWindow::startupUpdateCheck()
 {
-  if (!Host::GetBaseBoolSettingValue("AutoUpdater", "CheckAtStartup", true))
-    return;
-
-  checkForUpdates(false);
+  // No auto-update for the 3d-screenshot branch
+  return;
 }
 
 void MainWindow::updateDebugMenuVisibility()
