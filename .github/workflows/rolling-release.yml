@@ -43,11 +43,11 @@ jobs:
         DEBUG: 0
       run: scripts/build-dependencies-windows-x64.bat
 
-    - name: Build ARM64 Dependencies
-      if: steps.cache-deps.outputs.cache-hit != 'true'
-      env:
-        DEBUG: 0
-      run: scripts/build-dependencies-windows-arm64.bat
+    # - name: Build ARM64 Dependencies
+    #   if: steps.cache-deps.outputs.cache-hit != 'true'
+    #   env:
+    #     DEBUG: 0
+    #   run: scripts/build-dependencies-windows-arm64.bat
 
     - name: Tag as preview build
       if: github.ref == 'refs/heads/master'
@@ -68,14 +68,14 @@ jobs:
         echo #define SCM_RELEASE_TAGS {"latest", "preview"} >> src/scmversion/tag.h
         echo #define SCM_RELEASE_TAG "latest" >> src/scmversion/tag.h
 
-    - name: Update RC version fields
-      shell: cmd
-      run: |
-        cd src\scmversion
-        call update_rc_version.bat
-        cd ..\..
-        git update-index --assume-unchanged src/duckstation-qt/duckstation-qt.rc
-        git update-index --assume-unchanged src/duckstation-nogui/duckstation-nogui.rc
+    # - name: Update RC version fields
+    #   shell: cmd
+    #   run: |
+    #     cd src\scmversion
+    #     call update_rc_version.bat
+    #     cd ..\..
+    #     git update-index --assume-unchanged src/duckstation-qt/duckstation-qt.rc
+    #     git update-index --assume-unchanged src/duckstation-nogui/duckstation-nogui.rc
 
     - name: Compile x64 release build
       shell: cmd
@@ -455,28 +455,36 @@ jobs:
             linux-flatpak/duckstation-x64.flatpak
             macos/duckstation-mac-release.zip
 
-      - name: Rename assets for 3D Screenshot branch
-        if: github.ref == 'refs/heads/feature/3d-screenshot'
+      - name: Move artifacts
         run: |
-          mv windows/duckstation-windows-x64-release.zip windows/duckstation-3D-screenshot-windows-x64-release.zip
-          mv linux-x64-appimage-qt/DuckStation-x64.AppImage linux-x64-appimage-qt/DuckStation-3D-screenshot-x64.AppImage
-          mv macos/duckstation-mac-release.zip macos/duckstation-3D-screenshot-mac-release.zip
+          mkdir artifacts
+          mv windows/duckstation-windows-x64-release.zip artifacts/duckstation-3D-screenshot-windows-x64-release.zip
+          mv linux-x64-appimage-qt/DuckStation-x64.AppImage artifacts/DuckStation-3D-screenshot-x64.AppImage
+          mv macos/duckstation-mac-release.zip artifacts/duckstation-3D-screenshot-mac-release.zip
 
-      - name: Tag 3D Screenshot branch
-        if: github.ref == 'refs/heads/feature/3d-screenshot'
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          path: repo
+
+      - name: Tag
+        working-directory: ./repo
         run: |
-          git tag --force latest ${{ github.sha }}
+          git tag --force latest-3d-screenshot ${{ github.sha }}
           git push --force origin latest-3d-screenshot
 
-      - name: Create 3D screenshot release
-        if: github.ref == 'refs/heads/feature/3d-screenshot'
+      - name: Dump paths (debug)
+        run: |
+          pwd
+          ls
+          ls artifacts
+
+      - name: Release
         uses: ncipollo/release-action@v1
         with:
           tag: latest-3d-screenshot
           allowUpdates: true
           omitBodyDuringUpdate: true
           omitNameDuringUpdate: true
-          artifacts: |
-            windows/duckstation-3D-screenshot-windows-x64-release.zip
-            linux-x64-appimage-qt/DuckStation-3D-screenshot-x64.AppImage
-            macos/duckstation-3D-screenshot-mac-release.zip
+          artifactErrorsFailBuild: true
+          artifacts: "artifacts/*"

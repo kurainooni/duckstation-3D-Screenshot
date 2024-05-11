@@ -26,7 +26,8 @@ static Config s_config;
 
 static void Rotate2D(s32 angle, s64& x, s64& y)
 {
-  const float radians = angle * (2.f * M_PI / 360.f);
+  constexpr float PI = 3.14159265f;
+  const float radians = angle * (2.f * PI / 360.f);
   const s64 s = roundf(sinf(radians) * 4096.f);
   const s64 c = roundf(cosf(radians) * 4096.f);
 
