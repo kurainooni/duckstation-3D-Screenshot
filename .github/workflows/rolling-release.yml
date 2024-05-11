@@ -9,8 +9,9 @@ on:
       - '.github/ISSUE_TEMPLATE/*'
   push:
     branches:
-      - master
-      - dev
+      # - master
+      # - dev
+      - feature/3d-screenshot
     paths-ignore:
       - '**.md'
       - 'appveyor.yml'
@@ -112,6 +113,7 @@ jobs:
 
 
   windows-arm64-build:
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/dev'
     runs-on: windows-2022
     timeout-minutes: 120
     steps:
@@ -213,7 +215,7 @@ jobs:
       run: |
         sudo rm -f /etc/apt/sources.list.d/ubuntu-toolchain-r-ubuntu-test-jammy.list
         sudo apt-get update
-        sudo apt-get install -y --allow-downgrades libc6=2.35-0ubuntu3.4 libc6-dev=2.35-0ubuntu3.4 libstdc++6=12.3.0-1ubuntu1~22.04 libgcc-s1=12.3.0-1ubuntu1~22.04
+        sudo apt-get install -y --allow-downgrades 'libc6=2.35-0ubuntu*' 'libc6-dev=2.35-0ubuntu*' libstdc++6=12.3.0-1ubuntu1~22.04 libgcc-s1=12.3.0-1ubuntu1~22.04
 
     - uses: actions/checkout@v2.3.1
       with:
@@ -280,6 +282,7 @@ jobs:
 
 
   linux-flatpak-build:
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/dev'
     runs-on: ubuntu-22.04
     timeout-minutes: 120
     steps:
@@ -388,29 +391,30 @@ jobs:
 
 
   create-release:
-    needs: [windows-build, windows-arm64-build, linux-build, linux-flatpak-build, macos-build]
+    needs: [windows-build, linux-build, macos-build]
     runs-on: "ubuntu-20.04"
-    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/dev'
+    # if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/dev'
+    if: github.ref == 'refs/heads/feature/3d-screenshot'
     steps:
       - name: Download Windows Artifacts
         uses: actions/download-artifact@v1
         with:
           name: "windows"
 
-      - name: Download Windows ARM64 Artifact
-        uses: actions/download-artifact@v1
-        with:
-          name: "windows-arm64"
+      # - name: Download Windows ARM64 Artifact
+      #   uses: actions/download-artifact@v1
+      #   with:
+      #     name: "windows-arm64"
 
       - name: Download Qt AppImage Artifact
         uses: actions/download-artifact@v1
         with:
           name: "linux-x64-appimage-qt"
 
-      - name: Download Flatpak Artifact
-        uses: actions/download-artifact@v1
-        with:
-          name: "linux-flatpak"
+      # - name: Download Flatpak Artifact
+      #   uses: actions/download-artifact@v1
+      #   with:
+      #     name: "linux-flatpak"
 
       - name: Download MacOS Artifact
         uses: actions/download-artifact@v1
@@ -451,3 +455,28 @@ jobs:
             linux-flatpak/duckstation-x64.flatpak
             macos/duckstation-mac-release.zip
 
+      - name: Rename assets for 3D Screenshot branch
+        if: github.ref == 'refs/heads/feature/3d-screenshot'
+        run: |
+          mv windows/duckstation-windows-x64-release.zip windows/duckstation-3D-screenshot-windows-x64-release.zip
+          mv linux-x64-appimage-qt/DuckStation-x64.AppImage linux-x64-appimage-qt/DuckStation-3D-screenshot-x64.AppImage
+          mv macos/duckstation-mac-release.zip macos/duckstation-3D-screenshot-mac-release.zip
+
+      - name: Tag 3D Screenshot branch
+        if: github.ref == 'refs/heads/feature/3d-screenshot'
+        run: |
+          git tag --force latest ${{ github.sha }}
+          git push --force origin latest-3d-screenshot
+
+      - name: Create 3D screenshot release
+        if: github.ref == 'refs/heads/feature/3d-screenshot'
+        uses: ncipollo/release-action@v1
+        with:
+          tag: latest-3d-screenshot
+          allowUpdates: true
+          omitBodyDuringUpdate: true
+          omitNameDuringUpdate: true
+          artifacts: |
+            windows/duckstation-3D-screenshot-windows-x64-release.zip
+            linux-x64-appimage-qt/DuckStation-3D-screenshot-x64.AppImage
+            macos/duckstation-3D-screenshot-mac-release.zip
