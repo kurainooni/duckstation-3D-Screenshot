@@ -227,18 +227,19 @@ static u32 PackSXYIntoU32(s32 Sx, s32 Sy)
 // Jitter the output of RTPS around so no two verts land on the same
 // pixel. Thus a screen pixel uniquely indentifies the vert that
 // produced it.
-void FindFreeScreenCoord(s32& Sx, s32& Sy)
+Vertex& FindFreeScreenCoord(s32& Sx, s32& Sy)
 {
   const u32 key = PackSXYIntoU32(Sx, Sy);
-  if (!s_vertex_cache.contains(key))
-    return;
+  auto [it, success] = s_vertex_cache.try_emplace(key);
+  if (success)
+    return it->second;
 
   // Seed RNG, different per vertex
   std::size_t seed = 0xb0ba7ea;
   hash_combine(seed, s_frame_counter, s_vertex_cache.size());
   u32 rng = seed;
 
-  while (true)
+  for (u32 attempts = 0; true; ++attempts)
   {
     rng *= 0x343fdU;
     rng += 0x269ec3U;
@@ -246,7 +247,8 @@ void FindFreeScreenCoord(s32& Sx, s32& Sy)
     // Move up/down/left/right at random
     const bool axis = (rng >> 20) & 1;
     const bool sign = (rng >> 21) & 1;
-    const s32 dist = 1 + ((rng >> 22) & 1);
+    // Move faster if we've failed repeatedly
+    const s32 dist = 1 + ((rng >> 22) & (attempts < 5 ? 3 : 7));
     (axis ? Sx : Sy) += sign ? dist : -dist;
 
     // Saturate
@@ -254,8 +256,9 @@ void FindFreeScreenCoord(s32& Sx, s32& Sy)
     Sy = Sy < -1024 ? -1024 : Sy > 1023 ? 1023 : Sy;
 
     const u32 key = PackSXYIntoU32(Sx, Sy);
-    if (!s_vertex_cache.contains(key))
-      return;
+    auto [it, success] = s_vertex_cache.try_emplace(key);
+    if (success)
+      return it->second;
   }
 }
 
@@ -268,18 +271,13 @@ void PushVertex(s32& Sx, s32& Sy, float x, float y, float z)
   Sx = Sx < -1024 ? -1024 : Sx > 1023 ? 1023 : Sx;
   Sy = Sy < -1024 ? -1024 : Sy > 1023 ? 1023 : Sy;
 
-  FindFreeScreenCoord(Sx, Sy);
-
-  Vertex v;
+  Vertex& v = FindFreeScreenCoord(Sx, Sy);
   v.Sx = Sx;
   v.Sy = Sy;
   v.x = x;
   v.y = y;
   v.z = z;
   v.generation = s_frame_counter;
-
-  const u32 key = PackSXYIntoU32(Sx, Sy);
-  s_vertex_cache.insert_or_assign(key, v);
 }
 
 ////////////////////////////////////
